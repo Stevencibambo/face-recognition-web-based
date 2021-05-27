@@ -46,7 +46,6 @@ const constraints = {
  * We are using Tiny Face Detector
  */
 async function loadModel() {
-    console.log(window.location.pathname.split( '/' )[1])
     Promise.all([
         // faceapi.nets.tinyFaceDetector.loadFromUri('/' + window.location.pathname.split( '/' )[1] + '/models')
         faceapi.nets.tinyFaceDetector.loadFromUri('/face-detection-based-web/models')

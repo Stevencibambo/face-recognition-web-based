@@ -3,12 +3,12 @@
 * if system detect face front of camera
 * then he take a screen shot of an active windows
 */
+console.log(faceapi.nets)
 const video = document.getElementById('video');
 const screenEl = document.createElement('video');
 screenEl.id = "screen";
 screenEl.autoplay = "autoplay";
 const screen = screenEl;
-const canvas_screen = document.getElementById('canvas');
 const image_face = document.getElementById('face1');
 
 var face_pose = document.getElementsByClassName("face");
@@ -46,10 +46,11 @@ const constraints = {
  * We are using Tiny Face Detector
  */
 async function loadModel() {
-    console.log(window.location.pathname.split( '/' )[1])
     Promise.all([
         // faceapi.nets.tinyFaceDetector.loadFromUri('/' + window.location.pathname.split( '/' )[1] + '/models')
-        faceapi.nets.tinyFaceDetector.loadFromUri('/face-detection-based-web/models')
+        faceapi.nets.tinyFaceDetector.loadFromUri('/face-detection-based-web/models'),
+        faceapi.nets.ssdMobilenetv1.loadFromUri('/face-detection-based-web/models'),
+        faceapi.nets.faceExpressionNet.loadFromUri('/face-detection-based-web/models'),
     ]).then(startVideo)
 }
 /**
@@ -101,6 +102,9 @@ function streaming() {
         this.innerHTML = "Start capture";
     }
 }
+function test(){
+    console.log("Test okay")
+}
 function handleSuccess(stream) {
     video.srcObject = stream;
     btn_webcame.innerHTML = "Stop capture";
@@ -127,70 +131,79 @@ video.addEventListener("click", () => {
     streaming();
 });
 video.addEventListener('play', () => {
-    const canvas_video = faceapi.createCanvasFromMedia(video);
-    const displaySize = {
-        width: video.width,
-        height: video.height
-    };
-    faceapi.matchDimensions(canvas_video, displaySize);
-    console.log(displaySize);
+    // const canvas_video = faceapi.createCanvasFromMedia(video);
+    // const displaySize = {
+    //     width: video.width,
+    //     height: video.height
+    // };
+    // faceapi.matchDimensions(canvas_video, displaySize);
+    // console.log(displaySize);
 
     setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+        const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options()).withFaceExpressions();
         /**
          * count number of face detected in the stream
          */
         nbr_face = detections.length;
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        canvas_video.width = video.videoWidth;
-        canvas_video.height = video.videoHeight;
+        // const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        // canvas_video.width = video.videoWidth;
+        // canvas_video.height = video.videoHeight;
 
         if (nbr_face > 0) {
+            console.log(nbr_face)
+            const canvas = document.getElementById('canvas');
+            const dims = faceapi.matchDimensions(canvas, video, true)
 
-            for (var i = 0; i < nbr_face; i++) {
+            const resizedResult = faceapi.resizeResults(detections, dims)
+            const minConfidence = 0.05
+            faceapi.draw.drawDetections(canvas, resizedResult)
+            faceapi.draw.drawFaceExpressions(canvas, resizedResult, minConfidence)
 
-                var _x = resizedDetections[i]["_box"]["_x"];
-                var _y = resizedDetections[i]["_box"]["_y"];
-                var _width = resizedDetections[i]["_box"]["_width"];
-                var _height = resizedDetections[i]["_box"]["_height"];
 
-                var face_ = document.createElement("canvas");
-                face_.width = _width;
-                face_.height = _height;
+            // for (var i = 0; i < nbr_face; i++) {
+
+                // var _x = resizedDetections[i]["_box"]["_x"];
+                // var _y = resizedDetections[i]["_box"]["_y"];
+                // var _width = resizedDetections[i]["_box"]["_width"];
+                // var _height = resizedDetections[i]["_box"]["_height"];
+
+                // var face_ = document.createElement("canvas");
+                // face_.width = _width;
+                // face_.height = _height;
 
             //    var keys = Object.keys(resizedDetections);
             //    console.log(keys);
             //    console.log(resizedDetections[i]["_box"]);
             //    console.log(_x + " " + _y + " " + _width + " " + _height);
 
-                var ctx = canvas_video.getContext('2d');
-                ctx.drawImage(video, 0, 0);
+            //     var ctx = canvas_video.getContext('2d');
+            //     ctx.drawImage(video, 0, 0);
 
-                var imageData = ctx.getImageData(_x, _y, _width, _height);
-                //ctx.putImageData(imageData, 10, 10);
-                ctx.putImageData(imageData, 0, 0);
-                var ctxx = face_.getContext("2d");
-                ctxx.putImageData(imageData, 0, 0);
+            //     var imageData = ctx.getImageData(_x, _y, _width, _height);
+            //     //ctx.putImageData(imageData, 10, 10);
+            //     ctx.putImageData(imageData, 0, 0);
+            //     var ctxx = face_.getContext("2d");
+            //     ctxx.putImageData(imageData, 0, 0);
 		    
-                for (var i = 0; i < face_pose.length; i++) {
+            //     for (var i = 0; i < face_pose.length; i++) {
 
-                    if (face_pose[i].src === defaut_src || face_pose[i].src === no_face_src) {
-                        nbr_face_ok += 1;
-                        face_pose[i].src = face_.toDataURL("image/jpeg");
-                        break;
-                    }
-                }
-                if (nbr_face_ok === 15) {
-                    if (confirm("All face pose captured successful \n Do you want stop play video ?")) {
-                        stopVideo();
-                    }
-                    else {
-                        break;
-                    }
-                }
-            }
+            //         if (face_pose[i].src === defaut_src || face_pose[i].src === no_face_src) {
+            //             nbr_face_ok += 1;
+            //             face_pose[i].src = face_.toDataURL("image/jpeg");
+            //             break;
+            //         }
+            //     }
+            //     if (nbr_face_ok === 15) {
+            //         if (confirm("All face pose captured successful \n Do you want stop play video ?")) {
+            //             stopVideo();
+            //         }
+            //         else {
+            //             break;
+            //         }
+            //     }
+            // }
         }
-    }, 1000);
+    }, 10);
 });
 /**
  * this function is to reset a pose face when the first

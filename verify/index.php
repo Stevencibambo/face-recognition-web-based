@@ -12,10 +12,11 @@
 
     <body class="container-fuild">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <a class="navbar-brand" href="#"><h1>Face verification</h1></a>
+            <a class="navbar-brand" href="#"><h1>Register new face</h1></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
@@ -24,31 +25,31 @@
                 </ul>
                 <form class="form-inline my-2 my-lg-0">
                     <a href= "../" type="button" class="btn btn-secondary btn-lg">Home</a>&nbsp;&nbsp;
-                    <a class="btn btn-primary btn-lg" href="../registration/" role='button'>Face registration</a>
+                    <a class="btn btn-primary btn-lg" href="../verify/" role='button'>Face verification</a>
                 </form>
             </div>
         </nav>
         <div class="container">
             <div class="row" id="main-div">
-                <div class="col-6">
-                    <div class="row">
-                        <video id="video" class="col-12" poster="images/access/play-image.png" style="border:1px solid black" width="640" height="480" autoplay muted></video>
+                <div class="col-8">
+                    <div class="row option-btn">
+                        <div class="col-8">
+                            <div class="media-div" style="position:relative">
+                                <video id="video" poster="images/access/play-image.png" style="border:1px solid black" width="640" height="480" autoplay muted playsinline></video>
+                                <canvas id="canvas" />
+                            </div>
+                        </div>
                     </div>
-                    <div class="row" id="option-btn">
+                    <div class="row option-btn">
                         <div class="col-12">
                             <button type="button" name="capture" class="btn btn-primary" id="capture">Start camera</button>
                         </div>
                     </div>
                     <div>
-            
                     </div>
                 </div>
-                <div class="col-6">
-                    <div class="row">
-                        <div class="col-12 form-group">
-                            <img src="images/default_user.png" id="face-pred" class="face img-thumbnail" alt="Face" width="600" height="460"/>
-                        </div>
-                    </div>
+                <div class="col-4">
+
                 </div>
             </div>
         </div>
