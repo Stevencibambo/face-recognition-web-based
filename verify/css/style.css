@@ -46,3 +46,7 @@
     top: 0;
     left: 0;
   }
+#predictName{
+    overflow-y: scroll;
+    height: 550px;
+}

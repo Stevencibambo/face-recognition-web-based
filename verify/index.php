@@ -49,7 +49,11 @@
                     </div>
                 </div>
                 <div class="col-4">
-
+                    <div class="row option-btn">
+                        <div class="col-12" id="predictName">
+                            
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

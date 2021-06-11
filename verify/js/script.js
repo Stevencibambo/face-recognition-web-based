@@ -3,8 +3,8 @@
 * if system detect face front of camera
 * then he take a screen shot of an active windows
 */
-console.log(faceapi.nets)
 const video = document.getElementById('video');
+const predictName = document.getElementById('predictName')
 const screenEl = document.createElement('video');
 screenEl.id = "screen";
 screenEl.autoplay = "autoplay";
@@ -28,7 +28,8 @@ var face_data = null;
  * */
 var lastName = document.getElementById("lastName");
 var firstName = document.getElementById("firstName");
-
+var stateOne = "";
+var stateTwo = false;
 /**
  * option buttun
  * @capture @save @cancel
@@ -43,7 +44,6 @@ const constraints = {
 
 /**
  * loading a model for face detection
- * We are using Tiny Face Detector
  */
 async function loadModel() {
     Promise.all([
@@ -131,114 +131,44 @@ video.addEventListener("click", () => {
     streaming();
 });
 video.addEventListener('play', () => {
-    // const canvas_video = faceapi.createCanvasFromMedia(video);
-    // const displaySize = {
-    //     width: video.width,
-    //     height: video.height
-    // };
-    // faceapi.matchDimensions(canvas_video, displaySize);
-    // console.log(displaySize);
-
     setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options()).withFaceExpressions();
-        /**
-         * count number of face detected in the stream
-         */
+        const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options()) //.withFaceExpressions();
+        const faceImages = await faceapi.extractFaces(video, detections);
+        //count number of face detected in the stream
         nbr_face = detections.length;
-        // const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        // canvas_video.width = video.videoWidth;
-        // canvas_video.height = video.videoHeight;
 
         if (nbr_face > 0) {
-            console.log(nbr_face)
-            const canvas = document.getElementById('canvas');
-            const dims = faceapi.matchDimensions(canvas, video, true)
-
+            const canvas_canvas = document.getElementById('canvas');
+            const dims = faceapi.matchDimensions(canvas_canvas, video, true)
+            
             const resizedResult = faceapi.resizeResults(detections, dims)
             const minConfidence = 0.05
-            faceapi.draw.drawDetections(canvas, resizedResult)
-            faceapi.draw.drawFaceExpressions(canvas, resizedResult, minConfidence)
-
-
-            // for (var i = 0; i < nbr_face; i++) {
-
-                // var _x = resizedDetections[i]["_box"]["_x"];
-                // var _y = resizedDetections[i]["_box"]["_y"];
-                // var _width = resizedDetections[i]["_box"]["_width"];
-                // var _height = resizedDetections[i]["_box"]["_height"];
-
-                // var face_ = document.createElement("canvas");
-                // face_.width = _width;
-                // face_.height = _height;
-
-            //    var keys = Object.keys(resizedDetections);
-            //    console.log(keys);
-            //    console.log(resizedDetections[i]["_box"]);
-            //    console.log(_x + " " + _y + " " + _width + " " + _height);
-
-            //     var ctx = canvas_video.getContext('2d');
-            //     ctx.drawImage(video, 0, 0);
-
-            //     var imageData = ctx.getImageData(_x, _y, _width, _height);
-            //     //ctx.putImageData(imageData, 10, 10);
-            //     ctx.putImageData(imageData, 0, 0);
-            //     var ctxx = face_.getContext("2d");
-            //     ctxx.putImageData(imageData, 0, 0);
-		    
-            //     for (var i = 0; i < face_pose.length; i++) {
-
-            //         if (face_pose[i].src === defaut_src || face_pose[i].src === no_face_src) {
-            //             nbr_face_ok += 1;
-            //             face_pose[i].src = face_.toDataURL("image/jpeg");
-            //             break;
-            //         }
-            //     }
-            //     if (nbr_face_ok === 15) {
-            //         if (confirm("All face pose captured successful \n Do you want stop play video ?")) {
-            //             stopVideo();
-            //         }
-            //         else {
-            //             break;
-            //         }
-            //     }
-            // }
+            faceapi.draw.drawDetections(canvas_canvas, resizedResult)
+            // faceapi.draw.drawFaceExpressions(canvas, resizedResult, minConfidence)
+            faceImages.forEach(function(canvas){
+                face_data = canvas.toDataURL('image/jpeg')
+                /**
+                 * 
+                 */
+                console.log(stateOne, stateTwo)
+                if(stateOne == ""){
+                    requestXHR(face_data);
+                    console.log("test okay")   
+                }
+            })
         }
     }, 10);
 });
-/**
- * this function is to reset a pose face when the first
- * is not done well
- * @param {any} id
- */
-function resetFace(id) {
-    var face = document.getElementById(id);
 
-    if (face.src != defaut_src) {
-        if (confirm("Do you want to delete and recapture again")) {
-            face.src = defaut_src;
-            nbr_face_ok--;
-            streaming();
-        }
-        else {
-            alert("Please click on fach wich you want to delete");
-        }
-    }
-    else {
-        console.log(face.id);
-    }
-}
-function requestXHR(first_name, last_name, image_face) {
-    label = first_name + '_' + last_name
+function requestXHR(face_data) {
+    stateOne = 'pending'
     const toSend = {
-        label: label.toLowerCase(),
-        face: image_face
+        face: face_data
     };
-    
     const jsonString = JSON.stringify(toSend);
-    // console.log(jsonString);
     
     var xhr = new XMLHttpRequest();
-    var add = "http://localhost:5000/face/regisapi";
+    var add = "http://localhost:5000/face/predapi";
   
     xhr.open("POST", add);
     xhr.setRequestHeader("Content-Type", "application/json");
@@ -248,91 +178,49 @@ function requestXHR(first_name, last_name, image_face) {
             console.log(xhr.status)
             response = JSON.parse(xhr.responseText);
             console.log(response);
+            predict_name = response['predict_name'].split("_");
+            face_context = response['face_context'];
             if (xhr.status != '200'){
-                alert('Face saved succeful')
-                for (i = 0; i < face_pose.length; i++) {
-                    face_pose[i].src = defaut_src;
-                }
-                nbr_face_ok = 0;
+                stateOne = ''
+                stateTwo = true
                 face_data = null;
-                lastName.value = "";
-                firstName.value = "";
+                lastName = predict_name[0];
+                firstName = predict_name[1];
+                last = lastName.charAt(0).toUpperCase() + lastName.slice(1)
+                first = firstName.charAt(0).toUpperCase() + firstName.slice(1)
+                var predict_div = document.createElement('div');
+                predict_div.id = lastName + "_" + firstName
+                predict_div.style.padding = '5px';
+                predict_div.style.border = '1px solid #f2f2f2';
+                predict_div.style.textAlign = 'left'
+
+                var predict = document.createElement('span');
+                predict.style.display = 'inline-block';
+                predict.style.padding = '5px';
+                predict.innerHTML = last + " " + first;
+
+                var context = document.createElement('img');
+
+                context.src = face_context;
+                context.width = "120";
+                context.height = "100";
+                
+                predict_div.appendChild(context);
+                predict_div.appendChild(predict)
+                var old_pred = predictName.getElementsByTagName('div');
+                if(old_pred.length > 0){
+                    for(var i = 0; i < old_pred.length; i++){
+                        if(old_pred[i].id == predict_div.id){
+                            predictName.replaceChild(predict_div, old_pred[i])
+                            break;
+                        }else{
+                            predictName.appendChild(predict_div)
+                        }
+                    }
+                }else{
+                    predictName.appendChild(predict_div)
+                }
             }
         }
     });
 }
-/**
- * 
- */
-function uploadData(face) {
-    var form = new FormData();
-    form.append("face", face);
-   
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "ImageController.php");
-    // xhr.setRequestHeader("Content-Type", "multipart/form-data");
-
-    xhr.send(form);
-    xhr.addEventListener("readystatechange", function () {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            console.log(xhr.responseText);
-            console.log("status request : " + xhr.status);
-            alert("Student registration successefull !");
-
-            for (i = 0; i < face_pose.length; i++) {
-                face_pose[i].src = defaut_src;
-            }
-            nbr_face_ok = 0;
-            face_data = null;
-            lastName.value = "";
-            firstName.value = "";
-            gender.selectedIndex = 0;
-            birthdayDate.value = "";
-
-            schoolName.value = "";
-            codeField = "";
-            codeClass = "";
-
-            studentId.value = "";
-            phoneNumber.value = "";
-            email.value = "";
-        }
-    });
-}
-cancelBtn.addEventListener("click", function () {
-
-    for (i = 0; i < face_pose.length; i++) {
-        face_pose[i].src = defaut_src;
-    }
-    nbr_face_ok = 0;
-    face_data = null;
-    lastName.value = "";
-    firstName.value = "";
-});
-
-saveBtn.addEventListener("click", function () {
-    var error = 0;
-    if (lastName.value === "" 
-        || firstName.value === ""
-        || nbr_face_ok < 15) {
-        
-        if (lastName.value === "") {
-            alert("Please check student last name");
-        }
-        if (firstName.value === "") {
-            alert("Please check student first name");
-        }
-        if (nbr_face_ok < 15) {
-            alert("Please run webcame to complete all face pose as required");
-        }
-    } 
-    else {
-        var image_face = '';
-        for (i = 0; i < face_pose.length; i++) {
-            image_face = image_face + '-----' + face_pose[i].src;
-            // uploadData(face_data);
-        }
-        // console.log('image_face', image_face)
-        requestXHR(firstName.value, lastName.value, image_face);
-    }
-});
