@@ -128,3 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .vscode
+face-api/migrations
+face-api/app/modelnet/basedata/*
+face-api/app/modelnet/processdata/*
