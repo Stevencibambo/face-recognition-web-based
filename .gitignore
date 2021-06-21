@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 .vscode
 api/migrations
+api/app/modelnet/model/*
 api/app/modelnet/basedata/*
 api/app/modelnet/processdata/*
 api/app/modelnet/face_detector/
